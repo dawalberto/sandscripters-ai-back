@@ -79,6 +79,7 @@ app.post("/generate-prompt", (req, res) => {
     return;
   }
   const keywords = body.page + " webpage, " + body.keywords;
+  console.log("keywords", keywords);
 
   // Generate prompt with bing chat
   const prompt = `Instruction: Generate a detailed prompt for an image generator AI model taking into account the

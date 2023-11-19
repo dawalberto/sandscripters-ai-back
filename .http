@@ -1,4 +1,4 @@
-POST https://sandscripters-ai-back-b060b2039167.herokuapp.com:36868/generate-prompt HTTP/1.1
+POST https://sandscripters-ai-back-b060b2039167.herokuapp.com/generate-prompt HTTP/1.1
 content-type: application/json
 
 {
