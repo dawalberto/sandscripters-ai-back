@@ -1,32 +1,40 @@
 // index.js
-import express from 'express';
+import bodyParser from "body-parser";
+import cors from "cors";
+import express from "express";
 const app = express();
 const port = 3001; // You can change this port if needed
 
 // Imports
-import dotenv from 'dotenv';
-import { BingChat } from 'bing-chat-rnz';
-import { oraPromise } from 'ora';
+import { BingChat } from "bing-chat-rnz";
+import dotenv from "dotenv";
+import { oraPromise } from "ora";
 dotenv.config();
 
+app.use(cors());
+
+// Parse URL-encoded bodies (as sent by HTML forms)
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Parse JSON bodies (as sent by API clients)
+app.use(bodyParser.json());
+
 // Get
-app.get('/', async (req, res) => {
-    
-    
-});
+app.get("/", async (req, res) => {});
 
 // Post
-app.post('/', (req, res) => {
+app.post("/", (req, res) => {
+	// console.log(process.env.BING_COOKIE);
+	const api = new BingChat({ cookie: process.env.BING_COOKIE });
+	const body = req.body;
+	console.log("body", body);
 
-  const api = new BingChat({ cookie: process.env.BING_COOKIE })
-  
-  const body = req.body;
-  const webTheme = "videogames and computers"; // body.theme;
-  const webDescription = "Modern, rgb, sharp, mouse, keyboard"; // body.description;
-  // const webPages = body.pages;
-  const pageColors = "red and blue"; // body.colors;
+	const webTheme = body.theme;
+	const webDescription = "realistic"; // body.description;
+	// const webPages = body.pages;
+	const pageColors = "red and blue"; // body.colors;
 
-  const prompt = `Instructions: Only write two very detailed prompts, one negative and one positive, for a GAN model
+	const prompt = `Instructions: Only write two very detailed prompts, one negative and one positive, for a GAN model
   to generate images about ${webTheme}. 
   
   DO NOT WRITE ANY OTHER TEXT APART FROM THE PROMPTS IN YOUR RESPONSE.
@@ -51,45 +59,44 @@ app.post('/', (req, res) => {
   
   Key words: ${webDescription}\n
   Colors: ${pageColors}\n
-  `
+  `;
 
-  oraPromise(api.sendMessage(prompt), {
-      text: prompt,
-      variant: 'Creative'
-  }).then((result)=> {
+	oraPromise(api.sendMessage(prompt), {
+		text: prompt,
+		variant: "Creative",
+	})
+		.then((result) => {
+			console.log("hola", result.text);
 
-    console.log("hola", result.text);
+			// Regular expression to capture content between "Positive prompt:" and "(end)"
+			const positivePromptRegex = /Positive prompt:(.*?)(?=\(end\))/s;
+			const positivePromptMatch = result.text.match(positivePromptRegex);
 
-  // Regular expression to capture content between "Positive prompt:" and "(end)"
-  const positivePromptRegex = /Positive prompt:(.*?)(?=\(end\))/s;
-  const positivePromptMatch = result.text.match(positivePromptRegex);
+			// Regular expression to capture content between "Negative prompt:" and "(end)"
+			const negativePromptRegex = /Negative prompt:(.*?)(?=\(end\))/s;
+			const negativePromptMatch = result.text.match(negativePromptRegex);
 
-  // Regular expression to capture content between "Negative prompt:" and "(end)"
-  const negativePromptRegex = /Negative prompt:(.*?)(?=\(end\))/s;
-  const negativePromptMatch = result.text.match(negativePromptRegex);
+			if (positivePromptMatch && negativePromptMatch) {
+				const positivePromptContent = positivePromptMatch[1].trim();
+				const negativePromptContent = negativePromptMatch[1].trim();
 
-  if (positivePromptMatch && negativePromptMatch) {
-    const positivePromptContent = positivePromptMatch[1].trim();
-    const negativePromptContent = negativePromptMatch[1].trim();
+				console.log("Positive Prompt Content:", positivePromptContent);
+				console.log("\nNegative Prompt Content:", negativePromptContent);
 
-    console.log("Positive Prompt Content:", positivePromptContent);
-    console.log("\nNegative Prompt Content:", negativePromptContent);
-
-    res.json({positive: positivePromptContent, negative: negativePromptContent});
-
-  } else {
-    console.log("Couldn't match prompts.");
-  }
-
-  }).catch((error)=>{
-
-    res.json(error);
-
-  });
-
+				res.json({
+					positive: positivePromptContent,
+					negative: negativePromptContent,
+				});
+			} else {
+				console.log("Couldn't match prompts.");
+			}
+		})
+		.catch((error) => {
+			res.json(error);
+		});
 });
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+	console.log(`Server is running on http://localhost:${port}`);
 });
