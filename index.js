@@ -23,11 +23,13 @@ app.use(bodyParser.json());
 // Post - Generate extra keywords
 app.post("/generate-keywords", (req, res) => {
   // Create bing chat instance
+  console.log("Generando keywords...");
   const api = new BingChat({ cookie: process.env.BING_COOKIE });
 
   // Retrieve request information
   const body = req.body;
   const theme = body.theme;
+  console.log("theme", theme);
   if (!theme) {
     res.json({ error: "no theme specified" });
     return;
@@ -74,6 +76,7 @@ app.post("/generate-prompt", (req, res) => {
 
   // Retrieve keywords
   const body = req.body;
+
   if (!body.page || !body.keywords) {
     res.json({ error: "no page or keywords specified" });
     return;
