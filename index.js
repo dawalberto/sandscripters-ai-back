@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Post - Generate extra keywords
-app.post("/generate-keywords", (req, res) => {
+app.post("/generate-keywords", async (req, res) => {
   // Create bing chat instance
   console.log("Generando keywords...");
   const api = new BingChat({ cookie: process.env.BING_COOKIE });
@@ -49,18 +49,26 @@ app.post("/generate-keywords", (req, res) => {
 	IMPORTANT: Display only the generated words together in a sigle line format separated only by ",".
 	Do not display any other text within your response.`;
 
-  oraPromise(api.sendMessage(prompt), {
-    text: prompt,
-    variant: "Precise",
-  })
-    .then((result) => {
-      // Return generated keywords
-      console.log("Generated keywords: ", result.text);
-      res.json({ keywords: result.text });
-    })
-    .catch((error) => {
-      res.json({ error });
-    });
+  const result = await api.sendMessage(prompt, {
+    // change the variant to 'Precise'
+    variant: "Creative",
+  });
+
+  console.log("🦊 result", result);
+  res.json({ keywords: result.text });
+
+  // oraPromise(api.sendMessage(prompt), {
+  //   text: prompt,
+  //   variant: "Precise",
+  // })
+  //   .then((result) => {
+  //     // Return generated keywords
+  //     console.log("Generated keywords: ", result.text);
+  //     res.json({ keywords: result.text });
+  //   })
+  //   .catch((error) => {
+  //     res.json({ error });
+  //   });
 });
 
 app.get("/", (req, res) => {
