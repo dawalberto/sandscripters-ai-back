@@ -61,6 +61,11 @@ app.post("/generate-keywords", (req, res) => {
     });
 });
 
+app.get("/", (req, res) => {
+  res.json({ message: "hellow =)" });
+  return;
+});
+
 // Post - Generate prompt
 app.post("/generate-prompt", (req, res) => {
   console.log("generatingPrompt...");
