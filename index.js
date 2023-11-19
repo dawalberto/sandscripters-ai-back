@@ -3,7 +3,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
 const app = express();
-const port = 3001; // You can change this port if needed
+const port = process.env.PORT || 3001; // You can change this port if needed
+console.log("port", port);
 
 // Imports
 import { BingChat } from "bing-chat-rnz";
