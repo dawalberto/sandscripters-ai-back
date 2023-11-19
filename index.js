@@ -22,78 +22,79 @@ app.use(bodyParser.json());
 // Get
 app.get("/", async (req, res) => {});
 
-// Post
-app.post("/", (req, res) => {
-	// console.log(process.env.BING_COOKIE);
+// Post - Generate extra keywords
+app.post("/generate-keywords", (req, res) => {
+
+	// Create bing chat instance
 	const api = new BingChat({ cookie: process.env.BING_COOKIE });
+
+	// Retrieve request information
 	const body = req.body;
+	const theme = "videogames and computers"; // body.theme;
+	const keywords = "gaming, mouse, keyboard, computer, esports"; // body.keywords;
+	const style = "realistic"; // body.style;
+	const colors = "red, blue"; // body.colors;
 	console.log("body", body);
 
-	const webTheme = body.theme;
-	const webDescription = "realistic"; // body.description;
-	// const webPages = body.pages;
-	const pageColors = "red and blue"; // body.colors;
+	// Generate extra keywords with bing chat
+	const prompt = 
+	`First, provide 10 words and short phrases related to ${theme}.
 
-	const prompt = `Instructions: Only write two very detailed prompts, one negative and one positive, for a GAN model
-  to generate images about ${webTheme}. 
-  
-  DO NOT WRITE ANY OTHER TEXT APART FROM THE PROMPTS IN YOUR RESPONSE.
-  SEND THE PROMPTS WITH THE FOLLOWING FORMAT:
+	Secondly, provide 10 extra words and short phrases related to ${keywords}.
 
-  Positive prompt: content (end)
+	Thirdly, provide 10 extra words and short phrases related to ${style} style for image generation.
 
-  Negative prompt: content (end)
+	IMPORTANT: Display only the generated words together in a sigle line format separated only by ",".
+	Do not display any other text within your response.`;
 
-  Make the prompts as detailed as the example below, including its format, 
-  but adding extra fields and changing the content to match the ${webTheme} topic.\n
-
-  Example prompt: [three-quarter close-up::12], [gorgeous face, long blond wavy hair, (pale skin:1. 2), pastel lighting, 
-  mysterious smile, ((looking at the camera)), bright and piercing eyes:9], gorgeous ${webTheme}, 
-  ((anatomical:0. 7) (cybernated (arms:1. 1) in Deus Ex Mankind Divided style:0. 9)) and (trim and athletic:0. 8), 
-  (glossy [with rolled up sleeves] blown jacket in fashion magazine style, clothing jacket, night city), 
-  (Dylan Kowalski:1. 3), inside a slum alley with, natural glossy, [stunning high-activity unity render::30]Maximally 
-  natural [superdetail, ((professional photography, hyperphotorealistic, cinematic, natural reflection textures, 
-  natural materials, high-contrast shadows, cinematic lighting, soft lighting)):20], (neon lighting:0. 8), 150mm, ISO 100\n
-
-  Also take into account the following key words and colors to generate the prompts.\n
-  
-  Key words: ${webDescription}\n
-  Colors: ${pageColors}\n
-  `;
-
-	oraPromise(api.sendMessage(prompt), {
+	oraPromise(api.sendMessage(prompt),
+	{
 		text: prompt,
-		variant: "Creative",
-	})
-		.then((result) => {
-			console.log("hola", result.text);
+		variant: "Precise"
 
-			// Regular expression to capture content between "Positive prompt:" and "(end)"
-			const positivePromptRegex = /Positive prompt:(.*?)(?=\(end\))/s;
-			const positivePromptMatch = result.text.match(positivePromptRegex);
+	}).then((result) => 
+	{
+		// Return generated keywords
+		console.log("Generated keywords: ", result.text);
+		res.json({ keywords : result.text });
 
-			// Regular expression to capture content between "Negative prompt:" and "(end)"
-			const negativePromptRegex = /Negative prompt:(.*?)(?=\(end\))/s;
-			const negativePromptMatch = result.text.match(negativePromptRegex);
+	}).catch((error) => 
+	{
+		res.json(error);
+	});
+});
 
-			if (positivePromptMatch && negativePromptMatch) {
-				const positivePromptContent = positivePromptMatch[1].trim();
-				const negativePromptContent = negativePromptMatch[1].trim();
+// Post - Generate prompt
+app.post("/generate-prompt", (req, res) => {
 
-				console.log("Positive Prompt Content:", positivePromptContent);
-				console.log("\nNegative Prompt Content:", negativePromptContent);
+	// Create bing chat instance
+	const api = new BingChat({ cookie: process.env.BING_COOKIE });
 
-				res.json({
-					positive: positivePromptContent,
-					negative: negativePromptContent,
-				});
-			} else {
-				console.log("Couldn't match prompts.");
-			}
-		})
-		.catch((error) => {
-			res.json(error);
-		});
+	// Retrieve keywords
+	const keywords = "game, console, joystick, controller, graphics, resolution, FPS, CPU, GPU, RAM, gaming,mouse, keyboard, computer, esports, gaming chair, gaming headset, gaming monitor, gaming laptop, gaming desktop, realistic, 3D, texture, shading, lighting, rendering, modeling, animation, virtual reality, augmented reality";
+
+	// Generate prompt with bing chat
+	const prompt = 
+	`Instruction: Generate a detailed prompt for an image generator AI model taking into account the
+	following list of keywords: ${keywords}.
+
+	IMPORTANT: Display only the generated prompt. Do not display any other text within your response.`;
+
+	oraPromise(api.sendMessage(prompt),
+	{
+		text: prompt,
+		variant: "Precise"
+
+	}).then((result) => 
+	{
+		// Return generated prompt
+		console.log("Generated prompt: ", result.text);
+		res.json({ prompt : result.text });
+
+	}).catch((error) => 
+	{
+		res.json(error);
+	});
 });
 
 // Start the server
