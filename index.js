@@ -63,6 +63,7 @@ app.post("/generate-keywords", (req, res) => {
 
 // Post - Generate prompt
 app.post("/generate-prompt", (req, res) => {
+  console.log("generatingPrompt...");
   // Create bing chat instance
   const api = new BingChat({ cookie: process.env.BING_COOKIE });
 
